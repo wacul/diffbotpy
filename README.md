@@ -8,7 +8,7 @@ The library diffbotpy supports various kinds of API.
 ## Installation
 
 ```bash
-pip install -e git+ssh://git@github.com/wcl48/diffbotpy.git@master#egg=diffbotpy-0.1
+pip install -e git+ssh://git@github.com/wacul/diffbotpy.git@master#egg=diffbotpy-0.1
 ```
 
 ## Scope
