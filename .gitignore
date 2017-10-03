@@ -1,0 +1,15 @@
+pynb_checkpoints/
+tests/pickle/
+out/
+venv/
+__pycache__/
+.idea/
+notebook/script/
+.DS_Store
+store/pickle/*
+src/*.egg-info
+log/*
+notebook/
+tests/log
+tests/out/
+
