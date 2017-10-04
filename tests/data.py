@@ -1,3 +1,4 @@
+# see https://moz.com/top500/domains/csv
 bulk_url_lst = [
  'http://facebook.com/',
  'http://twitter.com/',
