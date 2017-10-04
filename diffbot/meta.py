@@ -14,12 +14,7 @@ class WebDataFetcher():
     def __init__(self, user_name):
         self.user_name = user_name
 
-    """base GET method for raw_data
-    _fetch_raw_data(self, api_type: str, *, query: dict, headers: dict)
-    """
-    def _fetch_raw_data(self, api_type, *, query=None, headers=None):
-        query = query or {}
-
+    def __fetch_token(self):
         # find token which links to user_name
         profiles = toml.load(os.path.expanduser(settings.toml_file))["profile"]
         tokens = [profile["token"] for profile in profiles if profile["username"]==self.user_name]
@@ -27,9 +22,15 @@ class WebDataFetcher():
             raise DiffbotTokenError("Multiple tokens found. Set the unique user_name")
         elif len(tokens) == 0:
             raise DiffbotTokenError("Token not found. Set the valid user_name in {}".format(settings.toml_file))
+        return tokens[0]
 
-        query.update({"token": tokens[0]})
 
+    """base GET method for raw_data
+    _fetch_raw_data(self, api_type: str, *, query: dict, headers: dict)
+    """
+    def _fetch_raw_data(self, api_type, *, query=None, headers=None):
+        query = query or {}
+        query.update({"token": self.__fetch_token()})
         headers = headers or {}
 
         # GET body content should be in querystring format (key/value pairs) in diffbot
