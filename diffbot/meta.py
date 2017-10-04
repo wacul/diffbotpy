@@ -46,6 +46,7 @@ class WebDataFetcher():
         _fetch_raw_data(self, api_type: str, *, query: dict, headers: dict)
         """
         payload = payload or {}
+        payload.update({"token" : self.__fetch_token()})
         headers = headers or {}
         # POST body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.post(self._get_end_point(api_type),
