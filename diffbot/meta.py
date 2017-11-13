@@ -84,7 +84,7 @@ class JobOperator(Client, metaclass=ABCMeta):
             "pageProcessPattern" : page_process_pattern,
         })
 
-    def lazy_fetch_extractors(self):
+    def lazy_fetch_extractors(self, job_index=0):
         """"""
         data = self.fetch_raw_data()
         if len(data) == 0:
@@ -95,31 +95,31 @@ class JobOperator(Client, metaclass=ABCMeta):
                 yield Extractor(datum)
 
 
-    def fetch_raw_data(self, format=None):
+    def fetch_raw_data(self, format=None, job_index=0):
         """format : json or csv"""
-        if self._check_job_completed():
+        if self._check_job_completed(job_index):
             return self._fetch_raw_data(
                 api_type = "{}/data".format(self.api_type),
                 query=self._compose_bot_data_query(format=format)
             )
         return []
 
-    def _check_job_completed(self):
+    def _check_job_completed(self, job_index):
         """get searcher object"""
-        status = self._fetch_job_status()
+        status = self._fetch_job_status(job_index)
         # check whether "Job has completed and no repeat is scheduled" or not
         if status["status"] != 9:
             raise DiffbotJobStatusError(status["status"], status["message"])
         else:
             return True
 
-    def _fetch_job_status(self):
-        job = self._fetch_job()
+    def _fetch_job_status(self, job_index):
+        job = self._fetch_job(job_index)
         return job["jobStatus"]
 
-    def _fetch_job(self):
+    def _fetch_job(self, job_index):
         data = self._fetch_jobs()
-        return data["jobs"][0]
+        return data["jobs"][job_index]
 
     def _fetch_jobs(self):
         return self._fetch_raw_data(
