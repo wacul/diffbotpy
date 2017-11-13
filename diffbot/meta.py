@@ -3,7 +3,7 @@ import urllib.parse
 from abc import ABCMeta, abstractmethod
 import os, toml
 import diffbot
-from . import settings
+from . import const
 from .error import DiffbotTokenError, DiffbotJobStatusError, DiffbotResponseError
 
 """this file contains WebDataFetcher, JobOperator and Extractor class
@@ -21,12 +21,12 @@ class WebDataFetcher():
         query = query or {}
 
         # find token which links to user_name
-        profiles = toml.load(os.path.expanduser(settings.toml_file))["profile"]
+        profiles = toml.load(os.path.expanduser(const.toml_file))["profile"]
         tokens = [profile["token"] for profile in profiles if profile["username"]==self.user_name]
         if len(tokens) > 1:
             raise DiffbotTokenError("Multiple tokens found. Set the unique user_name")
         elif len(tokens) == 0:
-            raise DiffbotTokenError("Token not found. Set the valid user_name in {}".format(settings.toml_file))
+            raise DiffbotTokenError("Token not found. Set the valid user_name in {}".format(const.toml_file))
 
         query.update({"token": tokens[0]})
 
@@ -58,7 +58,7 @@ class WebDataFetcher():
     @classmethod
     def _get_end_point(cls, api_type):
         """get url in each diffbot api"""
-        return "{}/v{}/{}".format(settings.diffbot_url, settings.diffbot_version, api_type)
+        return "{}/v{}/{}".format(const.diffbot_url, const.diffbot_version, api_type)
 
 
     @staticmethod
