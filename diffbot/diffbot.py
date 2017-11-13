@@ -2,8 +2,8 @@ from .meta import Client, JobOperator, drop_none_value, Extractor
 
 class SingleFetcher(Client):
     """wrapper of analyze/article/discussion/image/product/video API"""
-    def __init__(self, user_name):
-        super().__init__(user_name)
+    def __init__(self, token):
+        super().__init__(token)
 
     def _fetch_extractors(self, api_type, target_url, args=None, headers=None):
         data = self.fetch_raw_data(
@@ -200,12 +200,9 @@ class BulkJobOperator(JobOperator):
     see also bulk API document, https://www.diffbot.com/dev/docs/bulk/api.jsp
     # Set your Content-Type header to application/x-www-form-urlencoded
     """
-    def __init__(self, user_name, bot_name):
-        super().__init__(
-            user_name=user_name,
-            bot_name=bot_name,
-            api_type="bulk",
-        )
+
+    def __init__(self, token, bot_name):
+        super().__init__(token, bot_name, "bulk")
 
     def start_job(self, target_url_list, apiurl, *, args=None, headers=None):
         args = args or {}
@@ -252,9 +249,9 @@ class CrawlJobOperator(JobOperator):
     """use crawling API
     see also crawling API document, https://www.diffbot.com/dev/docs/crawl/.
     """
-    def __init__(self, user_name, bot_name):
+    def __init__(self, token, bot_name):
         super().__init__(
-            user_name=user_name,
+            token=token,
             bot_name=bot_name,
             api_type="crawl",
         )
@@ -317,8 +314,8 @@ class CrawlJobOperator(JobOperator):
 
 class Searcher(Client):
     """using search API"""
-    def __init__(self, user_name, bot_name):
-        super().__init__(user_name)
+    def __init__(self, token, bot_name):
+        super().__init__(token)
         self.bot_name = bot_name
 
     def fetch_search_extractors(self, *, query, args=None):

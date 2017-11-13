@@ -11,26 +11,14 @@ Generalized web_data fetcher using Diffbot.
 """
 class Client():
 
-    def __init__(self, user_name):
-        self.user_name = user_name
+    def __init__(self, token):
+        self.token = token
 
     """base GET method for raw_data
     _fetch_raw_data(self, api_type: str, *, query: dict, headers: dict)
     """
-    def _fetch_raw_data(self, api_type, *, query=None, headers=None):
-        query = query or {}
-
-        # find token which links to user_name
-        profiles = toml.load(os.path.expanduser(const.toml_file))["profile"]
-        tokens = [profile["token"] for profile in profiles if profile["username"]==self.user_name]
-        if len(tokens) > 1:
-            raise DiffbotTokenError("Multiple tokens found. Set the unique user_name")
-        elif len(tokens) == 0:
-            raise DiffbotTokenError("Token not found. Set the valid user_name in {}".format(const.toml_file))
-
-        query.update({"token": tokens[0]})
-
-        headers = headers or {}
+    def _fetch_raw_data(self, api_type, *, query={}, headers={}):
+        query.update({"token": self.token})
 
         # GET body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.get(self._get_end_point(api_type),
@@ -72,8 +60,8 @@ class Client():
 class JobOperator(Client, metaclass=ABCMeta):
     """wrapper of both bulk API and Crawlbot API"""
 
-    def __init__(self, user_name, bot_name, api_type):
-        super().__init__(user_name)
+    def __init__(self, token, bot_name, api_type):
+        super().__init__(token)
         self.bot_name = bot_name
         self.api_type = api_type
 
@@ -131,7 +119,7 @@ class JobOperator(Client, metaclass=ABCMeta):
             return self._get_searcher()
 
     def _get_searcher(self):
-        return diffbot.Searcher(self.user_name, self.bot_name)
+        return diffbot.Searcher(self.token, self.bot_name)
 
     def _compose_bot_data_query(self, format=None):
         """compose query of https://api.diffbot.com/v3/{}/data.format(self.api_type)
