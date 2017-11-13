@@ -91,7 +91,7 @@ class JobOperator(Client, metaclass=ABCMeta):
             return []
         else:
             for datum in data:
-                Extractor = diffbot.switch_extractor(datum['type'])
+                Extractor = diffbot.select_extractor(datum['type'])
                 yield Extractor(datum)
 
 

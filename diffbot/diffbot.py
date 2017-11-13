@@ -12,7 +12,7 @@ class SingleFetcher(Client):
             args = args,
             headers = headers,
         )
-        Extractor = switch_extractor(api_type)
+        Extractor = select_extractor(api_type)
 
         res = []
         for i in range(len(data["objects"])):
@@ -44,7 +44,7 @@ class SingleFetcher(Client):
             args=args,
             headers=headers
         )
-        Extractor = switch_extractor("analyze")
+        Extractor = select_extractor("analyze")
         return [Extractor(data)]
 
 
@@ -327,7 +327,7 @@ class Searcher(Client):
         exts = []
 
         for i in range(len(data["objects"])):
-            Extractor = switch_extractor(data["objects"][i]["type"])
+            Extractor = select_extractor(data["objects"][i]["type"])
             exts.append(Extractor(data["objects"][i]))
         return exts
 
@@ -363,8 +363,8 @@ class Searcher(Client):
 
 
 
-def switch_extractor(api_type):
-    """switch Extractor class corresponding api_type"""
+def select_extractor(api_type):
+    """select Extractor class corresponding api_type"""
     dic = {
         "article": ArticleExtractor,
         "analyze": AnalyzeExtractor,
