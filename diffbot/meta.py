@@ -6,10 +6,10 @@ import diffbot
 from . import const
 from .error import DiffbotTokenError, DiffbotJobStatusError, DiffbotResponseError
 
-"""this file contains WebDataFetcher, JobOperator and Extractor class
+"""this file contains Client, JobOperator and Extractor class
 Generalized web_data fetcher using Diffbot.
 """
-class WebDataFetcher():
+class Client():
 
     def __init__(self, user_name):
         self.user_name = user_name
@@ -74,7 +74,7 @@ class WebDataFetcher():
         return {prefix+key : value for key, value in dic.items() if value is not None}
 
 
-class JobOperator(WebDataFetcher, metaclass=ABCMeta):
+class JobOperator(Client, metaclass=ABCMeta):
     """wrapper of both bulk API and Crawlbot API"""
 
     def __init__(self, user_name, bot_name, api_type):

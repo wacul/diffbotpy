@@ -1,6 +1,6 @@
-from .meta import WebDataFetcher, JobOperator, drop_none_value, Extractor
+from .meta import Client, JobOperator, drop_none_value, Extractor
 
-class SingleFetcher(WebDataFetcher):
+class SingleFetcher(Client):
     """wrapper of analyze/article/discussion/image/product/video API"""
     def __init__(self, user_name):
         super().__init__(user_name)
@@ -315,7 +315,7 @@ class CrawlJobOperator(JobOperator):
             )
         })
 
-class Searcher(WebDataFetcher):
+class Searcher(Client):
     """using search API"""
     def __init__(self, user_name, bot_name):
         super().__init__(user_name)
