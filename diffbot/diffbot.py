@@ -201,8 +201,8 @@ class BulkJobOperator(JobOperator):
     # Set your Content-Type header to application/x-www-form-urlencoded
     """
 
-    def __init__(self, token, bot_name):
-        super().__init__(token, bot_name, "bulk")
+    def __init__(self, token, job_name):
+        super().__init__(token, job_name, "bulk")
 
     def start_job(self, target_url_list, apiurl, *, args=None, headers=None):
         args = args or {}
@@ -223,7 +223,7 @@ class BulkJobOperator(JobOperator):
         """along with Bulk API, override _compose_bot_query"""
         args = args or {}
         params = {
-            "name": self.bot_name,
+            "name": self.job_name,
             "urls": " ".join(target_url_list),  # Space-delimited list of URLs to process.
             "apiUrl": apiurl,
         }
@@ -249,10 +249,10 @@ class CrawlJobOperator(JobOperator):
     """use crawling API
     see also crawling API document, https://www.diffbot.com/dev/docs/crawl/.
     """
-    def __init__(self, token, bot_name):
+    def __init__(self, token, job_name):
         super().__init__(
             token=token,
-            bot_name=bot_name,
+            job_name=job_name,
             api_type="crawl",
         )
 
@@ -274,7 +274,7 @@ class CrawlJobOperator(JobOperator):
         args = args or {}
         params = {
             "seeds": " ".join(target_url_list),
-            "name": self.bot_name,
+            "name": self.job_name,
             "apiUrl": apiurl,
         }
 
@@ -314,9 +314,9 @@ class CrawlJobOperator(JobOperator):
 
 class Searcher(Client):
     """using search API"""
-    def __init__(self, token, bot_name):
+    def __init__(self, token, job_name):
         super().__init__(token)
-        self.bot_name = bot_name
+        self.job_name = job_name
 
     def fetch_search_extractors(self, *, query, args=None):
         args = args or {}
@@ -354,7 +354,7 @@ class Searcher(Client):
 
     def _compose_query(self, query, *, args=None):
         params = {
-            "col": self.bot_name,
+            "col": self.job_name,
             "query": query,
         }
         params.update(args)

@@ -63,7 +63,7 @@ import diffbot
 
 job_operator = diffbot.BulkJobOperator(
     token=token,
-    bot_name = "topPageUrl_12751"
+    job_name = "topPageUrl_12751"
 )
 
 
@@ -83,7 +83,7 @@ for ext in extractors:
 ```python
 searcher = diffbot.Searcher(
     token,
-    bot_name,
+    job_name,
 )
 
 #raw_data = searcher.fetch_raw_data(query = "type:article")
@@ -102,7 +102,7 @@ for ext in extractors:
 
 ```python
 import diffbot
-bot_name = "topPageUrl_12751"
+job_name = "topPageUrl_12751"
 
 job_operator = diffbot.BulkJobOperator(
     token=token

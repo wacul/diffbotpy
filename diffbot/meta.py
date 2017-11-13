@@ -60,9 +60,9 @@ class Client():
 class JobOperator(Client, metaclass=ABCMeta):
     """wrapper of both bulk API and Crawlbot API"""
 
-    def __init__(self, token, bot_name, api_type):
+    def __init__(self, token, job_name, api_type):
         super().__init__(token)
-        self.bot_name = bot_name
+        self.job_name = job_name
         self.api_type = api_type
 
     @classmethod
@@ -119,14 +119,14 @@ class JobOperator(Client, metaclass=ABCMeta):
             return self._get_searcher()
 
     def _get_searcher(self):
-        return diffbot.Searcher(self.token, self.bot_name)
+        return diffbot.Searcher(self.token, self.job_name)
 
     def _compose_bot_data_query(self, format=None):
         """compose query of https://api.diffbot.com/v3/{}/data.format(self.api_type)
         see also section of Retrieving Crawlbot API data.
         """
         return {
-            "name" : self.bot_name,
+            "name" : self.job_name,
             "format": format or "json",
         }
 
@@ -134,7 +134,7 @@ class JobOperator(Client, metaclass=ABCMeta):
         return self._fetch_raw_data(
             api_type=self.api_type,
             query={
-                "name": self.bot_name,
+                "name": self.job_name,
             },
         )
 
@@ -184,7 +184,7 @@ class JobOperator(Client, metaclass=ABCMeta):
         return self._fetch_raw_data(
             api_type=self.api_type,
             query={
-                "name": self.bot_name,
+                "name": self.job_name,
                 **control_dic[action]
             },
         )
