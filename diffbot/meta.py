@@ -106,12 +106,28 @@ class JobOperator(Client, metaclass=ABCMeta):
 
     def _check_job_completed(self):
         """get searcher object"""
-        status = self._check_job_status()
+        status = self._fetch_job_status()
         # check whether "Job has completed and no repeat is scheduled" or not
         if status["status"] != 9:
             raise DiffbotJobStatusError(status["status"], status["message"])
         else:
             return True
+
+    def _fetch_job_status(self):
+        job = self._fetch_job()
+        return job["jobStatus"]
+
+    def _fetch_job(self):
+        data = self._fetch_jobs()
+        return data["jobs"][0]
+
+    def _fetch_jobs(self):
+        return self._fetch_raw_data(
+            api_type=self.api_type,
+            query={
+                "name": self.job_name,
+            },
+        )
 
     def fetch_completed_searcher(self):
         """get searcher object"""
@@ -129,22 +145,6 @@ class JobOperator(Client, metaclass=ABCMeta):
             "name" : self.job_name,
             "format": format or "json",
         }
-
-    def _fetch_job(self):
-        return self._fetch_raw_data(
-            api_type=self.api_type,
-            query={
-                "name": self.job_name,
-            },
-        )
-
-    def _check_job(self):
-        data = self._fetch_job()
-        return data["jobs"][0]
-
-    def _check_job_status(self):
-        job = self._check_job()
-        return job["jobStatus"]
 
     @abstractmethod
     def start_job(self, target_url_list, apiurl, *, args=None, headers=None):
