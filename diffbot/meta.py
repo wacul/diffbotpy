@@ -68,11 +68,6 @@ class Client():
             raise DiffbotResponseError(response_data["errorCode"], response_data["error"])
         return response_data
 
-    @staticmethod
-    def get_headers(dic, prefix):
-        """to customize Custom HTTP Headers, prepend with 'X-Forward-'"""
-        return {prefix+key : value for key, value in dic.items() if value is not None}
-
 
 class JobOperator(Client, metaclass=ABCMeta):
     """wrapper of both bulk API and Crawlbot API"""
