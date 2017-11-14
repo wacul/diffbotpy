@@ -1,14 +1,15 @@
 import requests
 import urllib.parse
 from abc import ABCMeta, abstractmethod
-import os, toml
 import diffbot
 from . import const
-from .error import DiffbotTokenError, DiffbotJobStatusError, DiffbotResponseError
+from .error import DiffbotJobStatusError, DiffbotResponseError
 
 """this file contains Client, JobOperator and Extractor class
 Generalized web_data fetcher using Diffbot.
 """
+
+
 class Client():
 
     def __init__(self, token):
@@ -22,9 +23,9 @@ class Client():
 
         # GET body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.get(self._get_end_point(api_type),
-                            params=urllib.parse.urlencode(query),
-                            headers=headers,
-                            ).json()
+                                     params=urllib.parse.urlencode(query),
+                                     headers=headers,
+                                     ).json()
         return self._check_response(response_data)
 
     def _post_raw_data(self, api_type, *, payload=None, headers=None):
@@ -36,9 +37,9 @@ class Client():
         headers = headers or {}
         # POST body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.post(self._get_end_point(api_type),
-                             data=urllib.parse.urlencode(payload),
-                             headers=headers,
-                             ).json()
+                                      data=urllib.parse.urlencode(payload),
+                                      headers=headers,
+                                      ).json()
 
         return self._check_response(response_data)
 
@@ -47,7 +48,6 @@ class Client():
     def _get_end_point(cls, api_type):
         """get url in each diffbot api"""
         return "{}/v{}/{}".format(const.diffbot_url, const.diffbot_version, api_type)
-
 
     @staticmethod
     def _check_response(response_data):
@@ -74,14 +74,14 @@ class JobOperator(Client, metaclass=ABCMeta):
 
     @staticmethod
     def _generate_args(*, custom_headers=None, notify_email=None, notify_webhook=None, repeat=None,
-                                     max_rounds=None, page_process_pattern=None):
+                       max_rounds=None, page_process_pattern=None):
         return drop_none_value({
-            "customHeaders" : custom_headers,
-            "notifyEmail" : notify_email,
-            "notifyWebhook" : notify_webhook,
-            "repeat" : repeat,
-            "maxRounds" : max_rounds,
-            "pageProcessPattern" : page_process_pattern,
+            "customHeaders": custom_headers,
+            "notifyEmail": notify_email,
+            "notifyWebhook": notify_webhook,
+            "repeat": repeat,
+            "maxRounds": max_rounds,
+            "pageProcessPattern": page_process_pattern,
         })
 
     def lazy_fetch_extractors(self, job_index=0):
@@ -94,12 +94,11 @@ class JobOperator(Client, metaclass=ABCMeta):
                 Extractor = diffbot.select_extractor(datum['type'])
                 yield Extractor(datum)
 
-
     def fetch_raw_data(self, format=None, job_index=0):
         """format : json or csv"""
         if self._check_job_completed(job_index):
             return self._fetch_raw_data(
-                api_type = "{}/data".format(self.api_type),
+                api_type="{}/data".format(self.api_type),
                 query=self._compose_bot_data_query(format=format)
             )
         return []
@@ -142,8 +141,8 @@ class JobOperator(Client, metaclass=ABCMeta):
         see also section of Retrieving Crawlbot API data.
         """
         return {
-            "name" : self.job_name,
-            "format": format or "json",
+                "name": self.job_name,
+                "format": format or "json",
         }
 
     @abstractmethod

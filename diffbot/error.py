@@ -5,6 +5,7 @@ class DiffbotTokenError(KeyError):
     def __str__(self):
         return "DiffbotTokenError : {}".format(self.msg)
 
+
 class DiffbotResponseError(IOError):
     def __init__(self, code, msg):
         self.code = code
@@ -12,6 +13,7 @@ class DiffbotResponseError(IOError):
 
     def __str__(self):
         return "DiffbotResponseError #{} :  {}".format(self.code, self.msg)
+
 
 class DiffbotJobStatusError(IOError):
     def __init__(self, status, msg):
