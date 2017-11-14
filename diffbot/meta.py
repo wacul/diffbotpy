@@ -1,42 +1,31 @@
 import requests
 import urllib.parse
 from abc import ABCMeta, abstractmethod
-import os, toml
 import diffbot
-from . import settings
-from .error import DiffbotTokenError, DiffbotJobStatusError, DiffbotResponseError
+from . import const
+from .error import DiffbotJobStatusError, DiffbotResponseError
 
-"""this file contains WebDataFetcher, JobOperator and Extractor class
+"""this file contains Client, JobOperator and Extractor class
 Generalized web_data fetcher using Diffbot.
 """
-class WebDataFetcher():
 
-    def __init__(self, user_name):
-        self.user_name = user_name
+
+class Client():
+
+    def __init__(self, token):
+        self.token = token
 
     """base GET method for raw_data
     _fetch_raw_data(self, api_type: str, *, query: dict, headers: dict)
     """
-    def _fetch_raw_data(self, api_type, *, query=None, headers=None):
-        query = query or {}
-
-        # find token which links to user_name
-        profiles = toml.load(os.path.expanduser(settings.toml_file))["profile"]
-        tokens = [profile["token"] for profile in profiles if profile["username"]==self.user_name]
-        if len(tokens) > 1:
-            raise DiffbotTokenError("Multiple tokens found. Set the unique user_name")
-        elif len(tokens) == 0:
-            raise DiffbotTokenError("Token not found. Set the valid user_name in {}".format(settings.toml_file))
-
-        query.update({"token": tokens[0]})
-
-        headers = headers or {}
+    def _fetch_raw_data(self, api_type, *, query={}, headers={}):
+        query.update({"token": self.token})
 
         # GET body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.get(self._get_end_point(api_type),
-                            params=urllib.parse.urlencode(query),
-                            headers=headers,
-                            ).json()
+                                     params=urllib.parse.urlencode(query),
+                                     headers=headers,
+                                     ).json()
         return self._check_response(response_data)
 
     def _post_raw_data(self, api_type, *, payload=None, headers=None):
@@ -48,9 +37,9 @@ class WebDataFetcher():
         headers = headers or {}
         # POST body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.post(self._get_end_point(api_type),
-                             data=urllib.parse.urlencode(payload),
-                             headers=headers,
-                             ).json()
+                                      data=urllib.parse.urlencode(payload),
+                                      headers=headers,
+                                      ).json()
 
         return self._check_response(response_data)
 
@@ -58,8 +47,7 @@ class WebDataFetcher():
     @classmethod
     def _get_end_point(cls, api_type):
         """get url in each diffbot api"""
-        return "{}/v{}/{}".format(settings.diffbot_url, settings.diffbot_version, api_type)
-
+        return "{}/v{}/{}".format(const.diffbot_url, const.diffbot_version, api_type)
 
     @staticmethod
     def _check_response(response_data):
@@ -68,18 +56,13 @@ class WebDataFetcher():
             raise DiffbotResponseError(response_data["errorCode"], response_data["error"])
         return response_data
 
-    @staticmethod
-    def get_headers(dic, prefix):
-        """to customize Custom HTTP Headers, prepend with 'X-Forward-'"""
-        return {prefix+key : value for key, value in dic.items() if value is not None}
 
-
-class JobOperator(WebDataFetcher, metaclass=ABCMeta):
+class JobOperator(Client, metaclass=ABCMeta):
     """wrapper of both bulk API and Crawlbot API"""
 
-    def __init__(self, user_name, bot_name, api_type):
-        super().__init__(user_name)
-        self.bot_name = bot_name
+    def __init__(self, token, job_name, api_type):
+        super().__init__(token)
+        self.job_name = job_name
         self.api_type = api_type
 
     @classmethod
@@ -91,77 +74,80 @@ class JobOperator(WebDataFetcher, metaclass=ABCMeta):
 
     @staticmethod
     def _generate_args(*, custom_headers=None, notify_email=None, notify_webhook=None, repeat=None,
-                                     max_rounds=None, page_process_pattern=None):
+                       max_rounds=None, page_process_pattern=None):
         return drop_none_value({
-            "customHeaders" : custom_headers,
-            "notifyEmail" : notify_email,
-            "notifyWebhook" : notify_webhook,
-            "repeat" : repeat,
-            "maxRounds" : max_rounds,
-            "pageProcessPattern" : page_process_pattern,
+            "customHeaders": custom_headers,
+            "notifyEmail": notify_email,
+            "notifyWebhook": notify_webhook,
+            "repeat": repeat,
+            "maxRounds": max_rounds,
+            "pageProcessPattern": page_process_pattern,
         })
 
-    def lazy_fetch_extractors(self):
+    def lazy_fetch_extractors(self, job_index=0):
         """"""
         data = self.fetch_raw_data()
         if len(data) == 0:
             return []
         else:
             for datum in data:
-                Extractor = diffbot.switch_extractor(datum['type'])
+                Extractor = diffbot.select_extractor(datum['type'])
                 yield Extractor(datum)
 
-
-    def fetch_raw_data(self, format=None):
+    def fetch_raw_data(self, format=None, job_index=0):
         """format : json or csv"""
-        if self._check_job_completed():
+        status = self._fetch_job_status(job_index)
+        # check whether "Job has completed and no repeat is scheduled" or not
+        if status["status"] == 9:
             return self._fetch_raw_data(
-                api_type = "{}/data".format(self.api_type),
+                api_type="{}/data".format(self.api_type),
                 query=self._compose_bot_data_query(format=format)
             )
-        return []
-
-    def _check_job_completed(self):
-        """get searcher object"""
-        status = self._check_job_status()
-        # check whether "Job has completed and no repeat is scheduled" or not
-        if status["status"] != 9:
-            raise DiffbotJobStatusError(status["status"], status["message"])
         else:
-            return True
+            raise DiffbotJobStatusError(status["status"], status["message"])
 
-    def fetch_completed_searcher(self):
+    def job_completed(self, job_index=0):
         """get searcher object"""
-        if self._check_job_completed():
+        status = self._fetch_job_status(job_index)
+        # check whether "Job has completed and no repeat is scheduled" or not
+        return status["status"] == 9
+
+    def _fetch_job_status(self, job_index):
+        job = self._fetch_job(job_index)
+        return job["jobStatus"]
+
+    def _fetch_job(self, job_index):
+        data = self._fetch_jobs()
+        return data["jobs"][job_index]
+
+    def _fetch_jobs(self):
+        return self._fetch_raw_data(
+            api_type=self.api_type,
+            query={
+                "name": self.job_name,
+            },
+        )
+
+    def fetch_completed_searcher(self, job_index=0):
+        """get searcher object"""
+        status = self._fetch_job_status(job_index)
+        # check whether "Job has completed and no repeat is scheduled" or not
+        if status["status"] == 9:
             return self._get_searcher()
+        else:
+            raise DiffbotJobStatusError(status["status"], status["message"])
 
     def _get_searcher(self):
-        return diffbot.Searcher(self.user_name, self.bot_name)
+        return diffbot.Searcher(self.token, self.job_name)
 
     def _compose_bot_data_query(self, format=None):
         """compose query of https://api.diffbot.com/v3/{}/data.format(self.api_type)
         see also section of Retrieving Crawlbot API data.
         """
         return {
-            "name" : self.bot_name,
-            "format": format or "json",
+                "name": self.job_name,
+                "format": format or "json",
         }
-
-    def _fetch_job(self):
-        return self._fetch_raw_data(
-            api_type=self.api_type,
-            query={
-                "name": self.bot_name,
-            },
-        )
-
-    def _check_job(self):
-        data = self._fetch_job()
-        return data["jobs"][0]
-
-    def _check_job_status(self):
-        job = self._check_job()
-        return job["jobStatus"]
 
     @abstractmethod
     def start_job(self, target_url_list, apiurl, *, args=None, headers=None):
@@ -201,7 +187,7 @@ class JobOperator(WebDataFetcher, metaclass=ABCMeta):
         return self._fetch_raw_data(
             api_type=self.api_type,
             query={
-                "name": self.bot_name,
+                "name": self.job_name,
                 **control_dic[action]
             },
         )

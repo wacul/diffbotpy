@@ -19,30 +19,14 @@ diffbotpy supports almost all diffbot APIs below (except for account API):
 
 + Crawlbot API, Bulk API, Search API
 
-## Settings
-
-Your diffbot token is necessary. You should create `~/.diffbot/settings.toml`, then add username & token variable:
-
-```toml
-[[profile]]
-username = "aaa"
-token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-
-[[profile]]
-username = "zzz"
-token = "12345678901234567890123456789012"
-```
-
-You can make free to the variable username, but it must be unique. Put the username in the argument in SingleFetcher, BulkJobOperator, CrawlJobOperator and Searcher class instead of your raw diffbot token.
-
 ## How to use
 
 ### Analyze/Article/Discussion/Video/Product/Image API 
 
 ```python
 import diffbot
-user_name = "aaa"
-fetcher = diffbot.SingleFetcher(user_name=user_name)
+token = "aaa"
+fetcher = diffbot.SingleFetcher(token=token)
 target_url = "https://aaa.co.jp/"
 
 # simplely fetch
@@ -78,8 +62,8 @@ for extractor in extractors:
 import diffbot
 
 job_operator = diffbot.BulkJobOperator(
-    user_name=user_name,
-    bot_name = "topPageUrl_12751"
+    token=token,
+    job_name = "topPageUrl_12751"
 )
 
 
@@ -98,8 +82,8 @@ for ext in extractors:
 
 ```python
 searcher = diffbot.Searcher(
-    user_name,
-    bot_name,
+    token,
+    job_name,
 )
 
 #raw_data = searcher.fetch_raw_data(query = "type:article")
@@ -118,10 +102,10 @@ for ext in extractors:
 
 ```python
 import diffbot
-bot_name = "topPageUrl_12751"
+job_name = "topPageUrl_12751"
 
 job_operator = diffbot.BulkJobOperator(
-    user_name=user_name
+    token=token
 )
 
 # for new bot name

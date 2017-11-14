@@ -1,5 +1,7 @@
 import unittest
 import diffbot
+
+
 class DiffbotClientTests(unittest.TestCase):
 
     def test_article(self):
@@ -10,7 +12,7 @@ class DiffbotClientTests(unittest.TestCase):
 
         extractors = fetcher.fetch_article_extractors(
             target_url="http://google.co.jp/",
-            args={"fields":"meta"},
+            args={"fields": "meta"},
         )
 
         for extractor in extractors:
@@ -22,7 +24,7 @@ class DiffbotClientTests(unittest.TestCase):
 
     def test_article_with_generate_args(self):
         fetcher = diffbot.SingleFetcher(
-            user_name = "sample",
+            user_name="sample",
         )
 
         # use generate_article_args
@@ -39,7 +41,6 @@ class DiffbotClientTests(unittest.TestCase):
             self.assertIn("meta", data)
 
             self.assertEqual(type(extractor.get_title()), str)
-
 
 
 if __name__ == "__main__":
