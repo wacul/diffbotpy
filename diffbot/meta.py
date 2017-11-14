@@ -96,21 +96,21 @@ class JobOperator(Client, metaclass=ABCMeta):
 
     def fetch_raw_data(self, format=None, job_index=0):
         """format : json or csv"""
-        if self._check_job_completed(job_index):
+        status = self._fetch_job_status(job_index)
+        # check whether "Job has completed and no repeat is scheduled" or not
+        if status["status"] == 9:
             return self._fetch_raw_data(
                 api_type="{}/data".format(self.api_type),
                 query=self._compose_bot_data_query(format=format)
             )
-        return []
+        else:
+            raise DiffbotJobStatusError(status["status"], status["message"])
 
-    def _check_job_completed(self, job_index):
+    def job_completed(self, job_index=0):
         """get searcher object"""
         status = self._fetch_job_status(job_index)
         # check whether "Job has completed and no repeat is scheduled" or not
-        if status["status"] != 9:
-            raise DiffbotJobStatusError(status["status"], status["message"])
-        else:
-            return True
+        return status["status"] == 9
 
     def _fetch_job_status(self, job_index):
         job = self._fetch_job(job_index)
@@ -128,10 +128,14 @@ class JobOperator(Client, metaclass=ABCMeta):
             },
         )
 
-    def fetch_completed_searcher(self):
+    def fetch_completed_searcher(self, job_index=0):
         """get searcher object"""
-        if self._check_job_completed():
+        status = self._fetch_job_status(job_index)
+        # check whether "Job has completed and no repeat is scheduled" or not
+        if status["status"] == 9:
             return self._get_searcher()
+        else:
+            raise DiffbotJobStatusError(status["status"], status["message"])
 
     def _get_searcher(self):
         return diffbot.Searcher(self.token, self.job_name)
