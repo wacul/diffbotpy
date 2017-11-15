@@ -35,6 +35,7 @@ class Client():
         """
         payload = payload or {}
         headers = headers or {}
+        payload["token"] = self.token
         # POST body content should be in querystring format (key/value pairs) in diffbot
         response_data = requests.post(self._get_end_point(api_type),
                                       data=urllib.parse.urlencode(payload),
