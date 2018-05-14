@@ -1,9 +1,10 @@
+import json
 import requests
 import urllib.parse
 from abc import ABCMeta, abstractmethod
 import diffbot
 from . import const
-from .error import DiffbotJobStatusError, DiffbotResponseError
+from .error import DiffbotJobStatusError, DiffbotResponseError, DiffbotUnexpectedBodyError
 
 """this file contains Client, JobOperator and Extractor class
 Generalized web_data fetcher using Diffbot.
@@ -22,10 +23,13 @@ class Client():
         query.update({"token": self.token})
 
         # GET body content should be in querystring format (key/value pairs) in diffbot
-        response_data = requests.get(self._get_end_point(api_type),
-                                     params=urllib.parse.urlencode(query),
-                                     headers=headers,
-                                     ).json()
+        response = requests.get(self._get_end_point(api_type),
+                                params=urllib.parse.urlencode(query),
+                                headers=headers)
+        try:
+            response_data = response.json()
+        except json.JSONDecodeError as e:
+            raise DiffbotUnexpectedBodyError(response.text, raw=e)
         return self._check_response(response_data)
 
     def _post_raw_data(self, api_type, *, payload=None, headers=None):
@@ -37,11 +41,13 @@ class Client():
         headers = headers or {}
         payload["token"] = self.token
         # POST body content should be in querystring format (key/value pairs) in diffbot
-        response_data = requests.post(self._get_end_point(api_type),
-                                      data=urllib.parse.urlencode(payload),
-                                      headers=headers,
-                                      ).json()
-
+        response = requests.post(self._get_end_point(api_type),
+                                 data=urllib.parse.urlencode(payload),
+                                 headers=headers)
+        try:
+            response_data = response.json()
+        except json.JSONDecodeError as e:
+            raise DiffbotUnexpectedBodyError(response.text, raw=e)
         return self._check_response(response_data)
 
     # private API

@@ -131,5 +131,7 @@ Some Errors raise in paticular cases:
 3. DiffbotJobStatusError
 => Some jobs are not completed in Bulk or Crawl API. Wait until the jobs completed, see also status code list, https://www.diffbot.com/dev/docs/bulk/api.jsp.
 
+4. DiffbotUnexpectedBodyError
+=> diffbot's API response is not JSON, sometimes, so.
 
 
